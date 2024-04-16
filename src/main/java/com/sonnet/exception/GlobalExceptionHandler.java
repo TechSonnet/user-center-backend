@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
         // 4.其实，遇到错误是，前端本来接受的就是异常返回的结果，只不过这个结果是服务器自己封装的
         // 5.现在，我们自己定义了这个结果
         log.error("BusinessException", e);
-        return ResultUtils.error(ErrorCode.SYSTEM_ERROR, e.getMessage(), "");
+        return ResultUtils.error(ErrorCode.SYSTEM_ERROR, e.getMessage(), e.getDescription());
     }
 
     @ExceptionHandler(RuntimeException.class)

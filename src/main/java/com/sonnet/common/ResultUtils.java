@@ -32,7 +32,13 @@ public class ResultUtils {
     public static  BaseResponse error(ErrorCode errorCode,String message ,String description) {
         return new BaseResponse(errorCode.getCode(),null,message ,description);
     }
-
+    
+    /**
+     * 返回错误处理结果
+     * @param code
+     * @param message
+     * @return
+     */
     public static  BaseResponse error(int code,String message) {
         return new BaseResponse(code,null,message);
     }

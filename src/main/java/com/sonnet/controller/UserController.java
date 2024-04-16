@@ -1,7 +1,11 @@
 package com.sonnet.controller;
 
 import cn.hutool.core.util.StrUtil;
-import com.sonnet.model.domain.RegisterResult;
+
+import com.sonnet.common.BaseResponse;
+import com.sonnet.common.ErrorCode;
+import com.sonnet.common.ResultUtils;
+import com.sonnet.exception.BusinessException;
 import com.sonnet.model.domain.User;
 import com.sonnet.model.request.UserLoginRequest;
 import com.sonnet.model.request.UserRegisterRequest;
@@ -37,13 +41,10 @@ public class UserController {
      * @return
      */
     @PostMapping("/register")
-    public long userRegister(@RequestBody UserRegisterRequest userRegisterRequest){
-//        RegisterResult registerResult = new RegisterResult();
+    public BaseResponse userRegister(@RequestBody UserRegisterRequest userRegisterRequest){
 
         if (userRegisterRequest == null){
-//            registerResult.setStatus("error");
-//            return registerResult;
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"没有请求参数");
         }
 
         String userAccount = userRegisterRequest.getUserAccount();
@@ -51,11 +52,10 @@ public class UserController {
         String checkPassword = userRegisterRequest.getCheckPassword();
 
         if(StrUtil.hasBlank(userAccount,password,checkPassword)){
-//            registerResult.setStatus("error");
-//            return registerResult;
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "部分请求参数为空");
         }
-        return userService.userRegister(userAccount,password,checkPassword);
+        long registerResult = userService.userRegister(userAccount,password,checkPassword);
+        return ResultUtils.success(registerResult);
     }
 
 
@@ -66,18 +66,19 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
-    public User userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
+    public BaseResponse userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
         if (userLoginRequest == null){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"没有请求参数");
         }
 
         String userAccount = userLoginRequest.getUserAccount();
         String password = userLoginRequest.getPassword();
 
         if (StrUtil.hasBlank(userAccount,password)){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"请求参数为空");
         }
-        return userService.userLogin(userAccount,password,request);
+        User loginRestult = userService.userLogin(userAccount,password,request);
+        return ResultUtils.success(loginRestult);
     }
 
     /**
@@ -87,11 +88,13 @@ public class UserController {
      * @return
      */
     @GetMapping("/search")
-    public List<User> getUsers(String username,HttpServletRequest request){
+    public BaseResponse getUsers(String username,HttpServletRequest request){
+        
         if (!isAdmin(request)) {
-            return new ArrayList<>();
+            throw new BusinessException(ErrorCode.NO_AUTH,"无权限");
         }
-        return userService.findByUsername(username);
+        List<User> byUsername = userService.findByUsername(username);
+        return ResultUtils.success(byUsername);
     }
 
     /**
@@ -101,11 +104,13 @@ public class UserController {
      * @return
      */
     @GetMapping("/delete")
-    public boolean deleteUser(long id, HttpServletRequest request){
+    public BaseResponse deleteUser(long id, HttpServletRequest request){
+        System.out.println("username");
         if (id < 0 || !isAdmin(request)){
-            return false;
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"用户不存在或者无权限"); 
         }
-        return userService.removeById(id);
+       boolean removeById = userService.removeById(id);
+       return ResultUtils.success(removeById);
     }
 
     /**
