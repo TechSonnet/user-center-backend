@@ -1,0 +1,15 @@
+com\sonnet\common\BaseResponse.class
+com\sonnet\model\request\UserRegisterRequest.class
+com\sonnet\service\UserService.class
+com\sonnet\constant\UserConstant.class
+com\sonnet\mapper\UserMapper.class
+com\sonnet\model\domain\RegisterResult.class
+com\sonnet\model\domain\User.class
+com\sonnet\common\ResultUtils.class
+com\sonnet\controller\UserController.class
+com\sonnet\exception\BusinessException.class
+com\sonnet\exception\GlobalExceptionHandler.class
+com\sonnet\common\ErrorCode.class
+com\sonnet\service\impl\UserServiceImpl.class
+com\sonnet\model\request\UserLoginRequest.class
+com\sonnet\UserCenterApplication.class
