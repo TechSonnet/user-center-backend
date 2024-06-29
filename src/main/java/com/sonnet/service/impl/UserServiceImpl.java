@@ -4,7 +4,9 @@ import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.sonnet.common.ErrorCode;
 import com.sonnet.constant.UserConstant;
+import com.sonnet.exception.BusinessException;
 import com.sonnet.mapper.UserMapper;
 import com.sonnet.model.domain.RegisterResult;
 import com.sonnet.model.domain.User;
@@ -15,8 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.BufferOverflowException;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.sonnet.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
 * @author chang
@@ -48,9 +53,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 1. 对参数进行校验
         int registerParameter = validateRegisterParameter(userAccount, password, checkPassword);
         if (registerParameter < 0){
-//            registerResult.setStatus("error");
-//            return registerResult;
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户名已注册");
         }
         // 2. 对密码进行加密
         String encryptPassword = Base64.encode(password);
@@ -189,7 +192,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param user
      * @return
      */
-    private User hindUserInfo(User user) {
+    public User hindUserInfo(User user) {
         User safeUser = new User();
         safeUser.setId(user.getId());
         safeUser.setUsername(user.getUsername());
@@ -204,12 +207,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
+     * 用户注销接口
+     * @param request
+     * @return
+     */
+    @Override
+    public void userLogout(HttpServletRequest request) {
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+    }
+
+    /**
      * 保存用户信息状态
      * @param user
      * @param request
      */
     private void saveUserStatus(User user, HttpServletRequest request) {
-        request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, user);
+        request.getSession().setAttribute(USER_LOGIN_STATE, user);
     }
 }
 

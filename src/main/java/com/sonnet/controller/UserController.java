@@ -1,5 +1,6 @@
 package com.sonnet.controller;
 
+import ch.qos.logback.core.model.INamedModel;
 import cn.hutool.core.util.StrUtil;
 
 import com.sonnet.common.BaseResponse;
@@ -33,6 +34,24 @@ public class UserController {
 
     @Resource
     private UserService userService;
+
+    @GetMapping("/current")
+    public BaseResponse getCurrentUser(HttpServletRequest request){
+        // 1. 从 session 获取当前用户信息
+        User currentUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        // 2. 根据信息，进行查库操作，返回用户信息
+        if (currentUser == null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        // 此处之所以进行查库操作，是为了保证信息是最新的。
+        // 从缓存（如 Session）中查询，并不能保证这一点
+        currentUser = userService.getById(currentUser.getId());
+        User user = userService.hindUserInfo(currentUser);
+        // 3. 返回用户信息
+        return ResultUtils.success(user);
+    }
+
+
 
     /**
      * 用户注册接口
@@ -82,6 +101,19 @@ public class UserController {
     }
 
     /**
+     * 用户注销
+     * @return 返回值大于 0 则代表注销成功
+     */
+    @PostMapping("/logout")
+    public BaseResponse<Integer> userLogout(HttpServletRequest request){
+        if (request == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"request 为空");
+        }
+        userService.userLogout(request);
+        return ResultUtils.success(1);
+    }
+
+    /**
      * 查询用户接口
      * @param username
      * @param request
@@ -95,6 +127,16 @@ public class UserController {
         }
         List<User> byUsername = userService.findByUsername(username);
         return ResultUtils.success(byUsername);
+    }
+
+    @GetMapping("/searchUsers")
+    public BaseResponse getUserList(HttpServletRequest request){
+
+        if (!isAdmin(request)) {
+            throw new BusinessException(ErrorCode.NO_AUTH,"无权限");
+        }
+        List<User> userList = userService.list();
+        return ResultUtils.success(userList);
     }
 
     /**
@@ -126,5 +168,6 @@ public class UserController {
         }
         return false;
     }
+
 
 }
